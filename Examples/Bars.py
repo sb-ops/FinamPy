@@ -13,9 +13,11 @@ from google.protobuf.json_format import MessageToDict
 
 
 logger = logging.getLogger('FinamPy.Bars')  # Будем вести лог. Определяем здесь, т.к. возможен внешний вызов ф-ии
-datapath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'Data', 'Finam', '')  # Путь сохранения файла истории
+#datapath = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', '..', 'Data', 'Finam', '')  # Путь сохранения файла истории
+datapath = '/home/sergio/docs/scripts/finance/history_data/'
 delimiter = '\t'  # Разделитель значений в файле истории. По умолчанию табуляция
-dt_format = '%d.%m.%Y %H:%M'  # Формат представления даты и времени в файле истории. По умолчанию русский формат
+#dt_format = '%d.%m.%Y %H:%M'  # Формат представления даты и времени в файле истории. По умолчанию русский формат
+dt_format = '%Y-%m-%d %H:%M'  # Формат представления даты и времени в файле истории. По умолчанию русский формат
 min_bar_open_utc = datetime(1990, 1, 1, tzinfo=timezone.utc)  # Дата, когда никакой тикер еще не торговался
 
 
@@ -34,11 +36,14 @@ def load_candles_from_file(class_code, security_code, tf) -> pd.DataFrame:
                                 sep=delimiter,  # Разделитель значений
                                 usecols=['datetime', 'open', 'high', 'low', 'close', 'volume'],  # Для ускорения обработки задаем колонки, которые будут нужны для исследований
                                 parse_dates=['datetime'],  # Колонку datetime разбираем как дату/время
-                                dayfirst=True,  # В дате/времени сначала идет день, затем месяц и год
+                                #dayfirst=True,  # В дате/времени сначала идет день, затем месяц и год
+                                dayfirst=False,  # В дате/времени сначала идет день, затем месяц и год
                                 index_col='datetime')  # Индексом будет колонка datetime  # Дневки тикера
         file_bars['datetime'] = file_bars.index  # Колонка datetime нужна, чтобы не удалять одинаковые OHLCV на разное время
         logger.info(f'Первый бар    : {file_bars.index[0]:{dt_format}}')
         logger.info(f'Последний бар : {file_bars.index[-1]:{dt_format}}')
+        #logger.info(f'Первый бар    : {file_bars.index[0]}')
+        #logger.info(f'Последний бар : {file_bars.index[-1]}')
         logger.info(f'Кол-во бар    : {len(file_bars)}')
         return file_bars
     else:  # Если файл не существует
@@ -62,7 +67,7 @@ def get_candles_from_provider(fp_provider, class_code, security_code, tf, next_b
     logger.info(f'Получение истории {dataname} {tf} из Finam')
     td = timedelta(days=(30 if intraday else 365))  # Максимальный запрос за 30 дней для внутридневных интервалов и 1 год (365 дней) для дневных и выше
     interval = IntradayCandleInterval(count=500) if intraday else DayCandleInterval(count=500)  # Нужно поставить максимальное кол-во бар. Максимум, можно поставить 500
-    todate_utc = datetime.utcnow().replace(tzinfo=timezone.utc)  # Будем получать бары до текущей даты и времени UTC
+    todate_utc = datetime.now(timezone.utc)  # Будем получать бары до текущей даты и времени UTC
     from_ = getattr(interval, 'from')  # Т.к. from - ключевое слово в Python, то получаем атрибут from из атрибута интервала
     to_ = getattr(interval, 'to')  # Аналогично будем работать с атрибутом to для единообразия
     first_request = next_bar_open_utc == min_bar_open_utc  # Если файл не существует, то первый запрос будем формировать без даты окончания. Так мы в первом запросе получим первые бары истории
@@ -205,22 +210,49 @@ if __name__ == '__main__':  # Точка входа при запуске это
     logging.Formatter.converter = lambda *args: datetime.now(tz=fp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 
     class_code = 'TQBR'  # Акции ММВБ
-    security_codes = ('SBER',)  # Для тестов
+    #security_codes = ('POSI', '')  # Для тестов
+    #security_codes = ('SBER', 'LKOH')  # Для тестов
     # security_codes = ('GAZP', 'SBER', 'LKOH', 'MTLR', 'TCSG', 'VTBR', 'NVTK', 'ROSN', 'GMKN', 'PLZL',
     #                   'SGZH', 'MVID', 'TRNFP', 'AFLT', 'AFKS', 'MTLRP', 'NLMK', 'MTSS', 'TATN', 'SBERP',
     #                   'VKCO', 'MOEX', 'SMLT', 'ALRS', 'CHMF', 'RNFT', 'BSPB', 'MAGN', 'FLOT', 'POSI',
     #                   'RUAL', 'PHOR', 'IRAO', 'PIKK', 'AQUA', 'RTKM', 'UPRO', 'TATNP', 'FEES', 'SELG')  # TOP 40 акций ММВБ
+    security_codes = ('CBOM', 'ALRS', 'VTBR', 'MDMG', 'GEMC', 'VKCO', 'LENT', 'RUAL',
+       'T', 'HEAD', 'ENPG', 'YDEX', 'BSPB', 'AQUA', 'AFKS', 'AFLT',
+       'VSEH', 'GAZP', 'GMKN', 'LSRG', 'POSI', 'RENI', 'EUTR', 'IRAO',
+       'X5', 'LEAS', 'MVID', 'MBNK', 'MAGN', 'MTLR', 'MTSS', 'MOEX',
+       'LKOH', 'BELU', 'NLMK', 'OZPH', 'PIKK', 'PLZL', 'RTKM', 'SBER',
+       'CHMF', 'SELG', 'SVCB', 'FLOT', 'TGKA', 'HYDR', 'FEES', 'PHOR',
+       'ELFV', 'SFIN', 'UPRO', 'ASTR', 'SGZH', 'RNFT', 'MSNG', 'SMLT',
+       'NVTK', 'ROSN', 'TATN', 'PRMD', 'HNFG', 'AKRN', 'APTK', 'ABIO',
+       'WUSH', 'OGKB', 'DATA', 'FESH', 'DIAS', 'IVAT', 'KMAZ', 'DELI',
+       'RASP', 'MRKV', 'MSRS', 'MRKZ', 'MRKS', 'MRKU', 'MRKP', 'MRKC',
+       'SVAV', 'SOFL', 'SNGS', 'TGKN', 'TRMK', 'UGLD', 'VSMO', 'RDRB',
+       'AVAN', 'KZOS', 'LNZL', 'BLNG', 'DZRD', 'MGNZ', 'NKNC', 'GEMA',
+       'KLVZ', 'APRI', 'ACKO', 'ABRD', 'UTAR', 'BANE', 'ASSB', 'AMEZ',
+       'USBN', 'BRZL', 'VLHZ', 'VGSB', 'VSYD', 'GAZA', 'GAZT', 'GAZS',
+       'GAZC', 'GTRK', 'RTGZ', 'SIBN', 'GCHE', 'RBCM', 'DVEC',
+       'EELT', 'ZVEZ', 'ZILL', 'RUSI', 'INGR', 'IGST', 'KLSB', 'KOGK',
+       'KRSB', 'KAZT', 'KGKC', 'LMBZ', 'LVHK', 'LPSB', 'MGKL', 'MSTT',
+       'MGNT', 'MRSB', 'MGTS', 'KROT', 'NFAZ', 'VJGZ', 'NSVZ', 'UWGN',
+       'NKSH', 'NKHP', 'NMTP', 'UNAC', 'PAZA', 'PMSB', 'CHGZ', 'ROST',
+       'RKKE', 'LSNG', 'MRKK', 'TORS', 'MRKY', 'ROLO', 'RZSB', 'SPBE',
+       'KRKN', 'SARE', 'SVET', 'MFGS', 'JNOS', 'CARM', 'STSB', 'VRSB',
+       'KBSB', 'MISB', 'NNSB', 'RTSB', 'YRSB', 'TASB', 'TTLK', 'TGKB',
+       'TUZA', 'UKUZ', 'URKZ', 'LIFE', 'GECO', 'WTCM', 'CNTL', 'PRFN',
+       'CHKZ', 'CHMK', 'ELMT', 'UNKL', 'IRKT', 'YAKG', 'YKEN', 'KUZB',
+       'TNSE', 'DIOD', 'ZAYM', 'NAUK', 'RGSS', 'KCHE', 'MAGE', 'SAGO',
+       'SLEN', 'PRMB', 'KMEZ', 'ARSA')
     # class_code = 'SPBFUT'  # Фьючерсы (FUT)
     # security_codes = ('SiZ4', 'RIZ4')  # Формат фьючерса: <Тикер><Месяц экспирации><Последняя цифра года> Месяц экспирации: 3-H, 6-M, 9-U, 12-Z
     # security_codes = ('USDRUBF', 'EURRUBF', 'CNYRUBF', 'GLDRUBF', 'IMOEXF', 'SBERF', 'GAZPF')  # Вечные фьючерсы ММВБ
 
-    skip_last_date = True  # Если получаем данные внутри сессии, то не берем бары за дату незавершенной сессии
+    skip_last_date = False  # Если получаем данные внутри сессии, то не берем бары за дату незавершенной сессии
     # skip_last_date = False  # Если получаем данные, когда рынок не работает, то берем все бары
     save_candles_to_file(fp_provider, class_code, security_codes, 'D1', skip_last_date=skip_last_date, four_price_doji=True)  # Дневные бары
     # save_candles_to_file(fp_provider, class_code, security_codes, 'M60', skip_last_date=skip_last_date)  # Часовые бары
     # save_candles_to_file(fp_provider, class_code, security_codes, 'M15', skip_last_date=skip_last_date)  # 15-и минутные бары
-    # save_candles_to_file(fp_provider, class_code, security_codes, 'M5', skip_last_date=skip_last_date)  # 5-и минутные бары
-    # save_candles_to_file(fp_provider, class_code, security_codes, 'M1', skip_last_date=skip_last_date, four_price_doji=True)  # Минутные бары
+    #save_candles_to_file(fp_provider, class_code, security_codes, 'M5', skip_last_date=skip_last_date)  # 5-и минутные бары
+    #save_candles_to_file(fp_provider, class_code, security_codes, 'M1', skip_last_date=skip_last_date, four_price_doji=True)  # Минутные бары
 
     fp_provider.close_channel()  # Закрываем канал перед выходом
 
