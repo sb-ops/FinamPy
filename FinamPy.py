@@ -32,7 +32,8 @@ from FinamPy.grpc.stops_pb2_grpc import StopsStub  # Сервис стоп за�
 from pytz import timezone, utc  # Работаем с временнОй зоной и UTC
 from grpc import ssl_channel_credentials, secure_channel, RpcError  # Защищенный канал
 
-from FinamPy import Config  # Файл конфигурации
+#from FinamPy import Config  # Файл конфигурации
+from MyConfig import Config
 
 
 # noinspection PyProtectedMember
