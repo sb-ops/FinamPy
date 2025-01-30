@@ -388,7 +388,7 @@ class FinamPy:
         while True:  # Пока не получим ответ или ошибку
             try:  # Пытаемся
                 response, call = func.with_call(request=request, metadata=self.metadata)  # вызвать функцию
-                # self.logger.debug(f'Запрос: {request} Ответ: {response}')  # Для отладки работоспособности сервера Финам
+                #self.logger.debug(f'Запрос: {request} Ответ: {response}')  # Для отладки работоспособности сервера Финам
                 return response  # и вернуть ответ
             except RpcError as ex:  # Если получили ошибку канала
                 func_name = func._method.decode('utf-8')  # Название функции
@@ -434,6 +434,7 @@ class FinamPy:
                 if e.trade != proto_events.TradeEvent():  # Если пришло событие со сделкой
                     self.logger.debug(f'subscriptions_handler: Пришли данные подписки TradeEvent {e.trade}')
                     self.on_trade(e.trade)
+                    self.logger.info(f'Заявка исполнена по цене: {e.trade.price}, стоимость: {e.trade.value}, коммиссия: {e.trade.commission}')
                 if e.order_book != proto_events.OrderBookEvent():  # Если пришло событие стакана
                     self.logger.debug(f'subscriptions_handler: Пришли данные подписки OrderBookEvent {e.order_book}')
                     self.on_order_book(e.order_book)
