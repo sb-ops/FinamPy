@@ -26,6 +26,7 @@ class FinamPy:
     server = 'ftrr01.finam.ru:443'  # Сервер для исполнения вызовов
     jwt_token_ttl = 15 * 60  # Время жизни токена JWT 15 минут в секундах
     logger = logging.getLogger('FinamPy')  # Будем вести лог
+    metadata: tuple[str, str]  # Токен JWT в запросах
 
     def __init__(self, access_token=Config.access_token):
         """Инициализация
@@ -50,8 +51,6 @@ class FinamPy:
         self.jwt_token = ''  # Токен JWT
         self.jwt_token_issued = 0  # UNIX время в секундах выдачи токена JWT
         self.auth()  # Получаем токен JWT
-        self.metadata = ('authorization', self.jwt_token)  # Токен JWT в запросах
-
         self.account_ids = list(self.token_details().account_ids)  # Из инфрмации о токене получаем список счетов
 
     # Подключение
@@ -64,6 +63,7 @@ class FinamPy:
             response, _ = self.auth_stub.Auth.with_call(request=auth_service.AuthRequest(secret=self.access_token))
             self.jwt_token = response.token  # Токен JWT
             self.jwt_token_issued = now  # Дата выдачи токена JWT
+            self.metadata = ('authorization', self.jwt_token)  # Токен JWT в запросах
 
     def token_details(self) -> auth_service.TokenDetailsResponse:
         """Получение информации о токене сессии"""

@@ -215,6 +215,7 @@ if __name__ == '__main__':  # Точка входа при запуске это
     logging.Formatter.converter = lambda *args: datetime.now(tz=fp_provider.tz_msk).timetuple()  # В логе время указываем по МСК
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     class_code = 'TQBR'  # Акции ММВБ
     #security_codes = ('POSI', '')  # Для тестов
     #security_codes = ('SBER', 'LKOH')  # Для тестов
@@ -261,6 +262,9 @@ if __name__ == '__main__':  # Точка входа при запуске это
     #save_candles_to_file(fp_provider, class_code, security_codes, 'M1', skip_last_date=skip_last_date, four_price_doji=True)  # Минутные бары
 =======
     symbol = 'SBER@RUSX'
+=======
+    symbol = 'SBER@MISX'
+>>>>>>> f754684f14c7910fbe31e51f001a377b6a929bdd
     timeframe = BarsRequest.TIME_FRAME_D  # Дневной интервал
 >>>>>>> 537293fd818045bdee82ed41e8f9facec013d44e
 
@@ -294,5 +298,6 @@ if __name__ == '__main__':  # Точка входа при запуске это
         else:
             logger.info(f'Первый бар    : {bars_response.bars[0]}')
             logger.info(f'Последний бар : {bars_response.bars[-1]}')
+            logger.info(f'Получено бар  : {len(bars_response.bars)}')
         start_date = end_date  # Дату начала переносим на дату окончания
     fp_provider.close_channel()  # Закрываем канал перед выходом
